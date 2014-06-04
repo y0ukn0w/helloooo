@@ -1,41 +1,40 @@
-			    BBSbot: ��ˮľBBS�Ĺ���
-			    
-I. ϵͳҪ���� Unix ϵͳ��ʹ�ã�����װ�� expect �� Tcl.
+			    BBSbot: 上水木BBS的工具
 
-II. ʹ�÷�����
+I. 系统要求：在 Unix 系统下使用，必需装有 expect 和 Tcl.
 
-     1. �޸� bbsbot �ű���ͷ�ı��� datafile �� passwdfile, ʹ����ָ��
-     data �� passwd �ļ��ľ���·����
+II. 使用方法：
 
-     2. �޸� passwd �ļ����������ID�����룬������׺����롣��������ʾ��
+     1. 修改 bbsbot 脚本开头的变量 datafile 和 passwdfile, 使它们指向
+     data 和 passwd 文件的绝对路径。
+
+     2. 修改 passwd 文件，加入你的ID和密码，你的马甲和密码。如下面所示：
 
 	set passwd(yourid) "yourpassword"
 	set passwd(your_majia) "majia_password"
 
-	Ȼ������:
+	然后运行:
 
 	bbsbot ID
 
-III. ���ܣ����ܿ���������չ��������Ҫ�Ĺ�����
+III. 功能：功能可以任意扩展，现在主要的功能是
 
-   1. �Զ���վ����ֹ���ߡ�
-   
-   2. ֧�� telnet �� ssh��ȱʡ��¼��ʽ�� ssh, 
-      ����԰� bbsbot �ļ���ͷ����
-      
+   1. 自动上站，防止断线。
+
+   2. 支持 telnet 和 ssh。缺省登录方式是 ssh,
+      你可以把 bbsbot 文件开头加入
+
       set ssh 0
 
-      �Ӷ�ʹ�� telnet ��¼��
+      从而使用 telnet 登录。
 
-   2. �Զ��ظ���Ϣ�����ҿ��԰�msg���ݻظ���������Ϣ��
-      �� Ctrl-E �л��Զ��ظ����ܣ�ȱʡʱ�ر��Զ��ظ���
-      ������Ϣ�������޸� data �ļ�������«��ư��
-      ��Ϣ��¼�� chatlog.ID �ļ��
-   
-�����ȼ������Լ����壬ֻ��Ҫ�޸� bbsbot �ļ���interact���֣�����«��ư.
-�������� Ctrl-K �����������ߡ�
+   2. 自动回复消息，并且可以按msg内容回复多个随机消息。
+      按 Ctrl-E 切换自动回复功能，缺省时关闭自动回复。
+      定制消息内容请修改 data 文件，依葫芦画瓢。
+      消息记录在 chatlog.ID 文件里。
 
-Ŀǰֻ֧�� smth BBS. ��Ϊ bbsbot ʹ�ñȽϾ�ȷ��ƥ����Ϣ�������Զ��ظ����ܡ�
-��ֻ��ȡ�� smth ����Ϣ��ʽ���������Ҫ������ BBS �Զ��ظ�����Ҫ�޸��ļ���
-���������ʽ��
+其它热键可以自己定义，只需要修改 bbsbot 文件的interact部分，依葫芦画瓢.
+比如现在 Ctrl-K 可以立即断线。
 
+目前只支持 smth BBS. 因为 bbsbot 使用比较精确的匹配消息，条件自动回复功能。
+我只提取了 smth 的消息格式，所以如果要在其它 BBS 自动回复，需要修改文件相
+关正则表达式。
