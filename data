@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+set replies {
+	"hi"	{ "你有事找我?" }
+	"kick"  { "kick back" }
+	".*"	{ "$id, 你有事找我吗？请稍等。" }
+}
+

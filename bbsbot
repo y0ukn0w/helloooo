@@ -1,0 +1,173 @@
+#!/usr/bin/expect -f
+
+set datafile "/home/wy/bin/bbsbot/data"
+set passwdfile "/home/wy/bin/bbsbot/passwd"
+set timeout 60 
+set id ""
+set auto 0
+set autoreply 0
+set botname [lindex $argv 0]
+set article_counter 0
+set countstarted 0
+set ssh 1
+
+if {[llength $argv] < 1} {puts "useage: "; exit; }
+puts [lindex $argv 0]
+
+
+proc reloaddata {} {
+	global replies arrlen passwd datafile passwdfile
+	#read data file
+	set datafile_contents [open $datafile r 0400]
+	set filecontents [read -nonewline $datafile_contents]
+	eval $filecontents
+	close $datafile_contents
+	set arrlen [llength $replies]
+	
+	#read password file
+	set datafile_contents [open $passwdfile r 0400]
+	set filecontents [read -nonewline $datafile_contents]
+	eval $filecontents
+	close $datafile_contents
+}
+
+proc resetstate {} {
+	send "\033\133\104\033\133\104\033\133\104\033\133\104f\r"
+}
+
+proc sendmsg {id str} {
+	send "w$id\r$str\r\r\r"
+}
+
+proc post {theboard title file} {
+	send "s$theboard\r"
+	send "\020$title\r\r[exec cat $file]\027s\r"
+}
+
+proc mail {recvid title file} {
+	global auto
+	set tmp $auto
+	set auto 0
+	send "\033\133\104\033\133\104\033\133\104"
+	send "m\rs\r$recvid\r$title\r\r"
+	send "[exec cat $file]\027s\r\ry\r\r"
+	resetstate
+	set auto $tmp
+}
+
+proc countarticle {board} {
+	global countarticle article_counter countboard article_count countstarted
+	set countstarted 0
+	set countboard $board
+	send "s$board\r"
+	catch {unset article_count}
+	send "$"
+	set article_counter 1
+}
+
+reloaddata
+
+
+
+if ($ssh) {
+   spawn ssh -l $botname 166.111.8.238
+   expect "password:" { send "$passwd($botname)\r" } timeout exp_continue
+} else {
+      spawn telnet 166.111.8.238
+      expect "请输入代号: " { send "$botname\r" } timeout exp_continue
+      expect "请输入密码: " { send "$passwd($botname)\r" } timeout exp_continue
+}      
+
+expect_background -re "你同时上线的窗口数过多|密码输入错误的记录" {
+		if {$auto} {send "y\r"}
+        } "上次连线时间为" {
+		if {$auto} {send "n\r"}
+	} eof {
+		exit
+	} -re "上次连线时间为|按.*继续" {
+		if {$auto} {send "\r"}
+
+	} -re {\r(\u001b\[[[:digit:];]*.)*([[:alnum:]]+) *(\u001b\[[[:digit:];]*. *)*(\(.*\)).*\n\r(\u001b\[[[:digit:];]*.)*(.*?) *(\u001b\[[[:digit:]]*.)+.*\n\r} {
+	if {$autoreply} {
+		#auto reply msg
+		set sendreply 1
+		set retindex 0
+		set name "nobody"
+		set ret "哦"
+		set retpat "哦"
+
+		set id $expect_out(2,string)
+		set time $expect_out(4,string)
+		set contents $expect_out(6,string)
+
+		set retval 0
+		set retval [catch {set hk $lastreply($id)}]
+		if {$retval} {set lastreply($id) ""}
+
+		set retval 0
+		set retval [catch {incr autorepeat($id) 1}]
+		if {$retval} {set autorepeat($id) 1}
+
+		set patfound 0
+
+		#select random reply pattern from the list if a match found
+		for {set ind 0} {$ind < $arrlen} {incr ind 2} {
+			set pat [lindex $replies $ind]
+
+			if {[regexp -nocase $pat $contents match msub msubb msubbb]} {
+				set patfound 1 
+				set retpatterns [lindex $replies [expr $ind+1]]
+				set patlistlen [llength $retpatterns]
+
+
+				#deal with empty pattern lists
+				#set list to default list
+				if {$patlistlen==0} {
+					set retpatterns [lindex $replies [expr $arrlen-3]]
+					set patlistlen [llength $retpatterns]
+				} 
+
+				#pickup a random replay pattern from the list
+				set rand 0
+				set retpat [lindex $retpatterns $rand]
+				set retindex $rand
+				eval "set ret \"$retpat\""
+				break;
+			}
+		}
+
+		if {$sendreply} {
+			send "r$ret\r"
+			set lastreply($id) $ret
+
+			#log
+			set fileId [open "chatlog.$botname" a 0600]
+			puts $fileId "$id $time : $contents\n"
+			puts $fileId "====>$ret"
+			close $fileId
+		}
+	}
+
+		#see if article counter interrupted
+	} -re {讨论区.*?\[(.*?)\]} {
+		set currentboard $expect_out(1,string)
+	}
+
+
+for {} 1 {} { 
+	interact timeout 60 { 
+			send "\033\133\101\033\133\102"
+	} \005 { #C-e
+		if {$autoreply} {
+			set autoreply 0
+			send_user "noautoreply"
+		} else {
+			set autoreply 1
+			send_user "autoreply"
+		}
+	
+	} \013 { #C-k
+		exit 
+	}
+}
+
