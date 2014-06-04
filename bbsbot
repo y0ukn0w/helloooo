@@ -2,7 +2,7 @@
 
 set datafile "/home/wy/bin/bbsbot/data"
 set passwdfile "/home/wy/bin/bbsbot/passwd"
-set timeout 60 
+set timeout 60
 set id ""
 set auto 0
 set autoreply 0
@@ -23,7 +23,7 @@ proc reloaddata {} {
 	eval $filecontents
 	close $datafile_contents
 	set arrlen [llength $replies]
-	
+
 	#read password file
 	set datafile_contents [open $passwdfile r 0400]
 	set filecontents [read -nonewline $datafile_contents]
@@ -74,17 +74,17 @@ if ($ssh) {
    expect "password:" { send "$passwd($botname)\r" } timeout exp_continue
 } else {
       spawn telnet 166.111.8.238
-      expect "ÇëÊäÈë´úºÅ: " { send "$botname\r" } timeout exp_continue
-      expect "ÇëÊäÈëÃÜÂë: " { send "$passwd($botname)\r" } timeout exp_continue
-}      
+      expect "è¯·è¾“å…¥ä»£å·: " { send "$botname\r" } timeout exp_continue
+      expect "è¯·è¾“å…¥å¯†ç : " { send "$passwd($botname)\r" } timeout exp_continue
+}
 
-expect_background -re "ÄãÍ¬Ê±ÉÏÏßµÄ´°¿ÚÊı¹ı¶à|ÃÜÂëÊäÈë´íÎóµÄ¼ÇÂ¼" {
+expect_background -re "ä½ åŒæ—¶ä¸Šçº¿çš„çª—å£æ•°è¿‡å¤š|å¯†ç è¾“å…¥é”™è¯¯çš„è®°å½•" {
 		if {$auto} {send "y\r"}
-        } "ÉÏ´ÎÁ¬ÏßÊ±¼äÎª" {
+        } "ä¸Šæ¬¡è¿çº¿æ—¶é—´ä¸º" {
 		if {$auto} {send "n\r"}
 	} eof {
 		exit
-	} -re "ÉÏ´ÎÁ¬ÏßÊ±¼äÎª|°´.*¼ÌĞø" {
+	} -re "ä¸Šæ¬¡è¿çº¿æ—¶é—´ä¸º|æŒ‰.*ç»§ç»­" {
 		if {$auto} {send "\r"}
 
 	} -re {\r(\u001b\[[[:digit:];]*.)*([[:alnum:]]+) *(\u001b\[[[:digit:];]*. *)*(\(.*\)).*\n\r(\u001b\[[[:digit:];]*.)*(.*?) *(\u001b\[[[:digit:]]*.)+.*\n\r} {
@@ -93,8 +93,8 @@ expect_background -re "ÄãÍ¬Ê±ÉÏÏßµÄ´°¿ÚÊı¹ı¶à|ÃÜÂëÊäÈë´íÎóµÄ¼ÇÂ¼" {
 		set sendreply 1
 		set retindex 0
 		set name "nobody"
-		set ret "Å¶"
-		set retpat "Å¶"
+		set ret "å“¦"
+		set retpat "å“¦"
 
 		set id $expect_out(2,string)
 		set time $expect_out(4,string)
@@ -115,7 +115,7 @@ expect_background -re "ÄãÍ¬Ê±ÉÏÏßµÄ´°¿ÚÊı¹ı¶à|ÃÜÂëÊäÈë´íÎóµÄ¼ÇÂ¼" {
 			set pat [lindex $replies $ind]
 
 			if {[regexp -nocase $pat $contents match msub msubb msubbb]} {
-				set patfound 1 
+				set patfound 1
 				set retpatterns [lindex $replies [expr $ind+1]]
 				set patlistlen [llength $retpatterns]
 
@@ -125,7 +125,7 @@ expect_background -re "ÄãÍ¬Ê±ÉÏÏßµÄ´°¿ÚÊı¹ı¶à|ÃÜÂëÊäÈë´íÎóµÄ¼ÇÂ¼" {
 				if {$patlistlen==0} {
 					set retpatterns [lindex $replies [expr $arrlen-3]]
 					set patlistlen [llength $retpatterns]
-				} 
+				}
 
 				#pickup a random replay pattern from the list
 				set rand 0
@@ -149,13 +149,13 @@ expect_background -re "ÄãÍ¬Ê±ÉÏÏßµÄ´°¿ÚÊı¹ı¶à|ÃÜÂëÊäÈë´íÎóµÄ¼ÇÂ¼" {
 	}
 
 		#see if article counter interrupted
-	} -re {ÌÖÂÛÇø.*?\[(.*?)\]} {
+	} -re {è®¨è®ºåŒº.*?\[(.*?)\]} {
 		set currentboard $expect_out(1,string)
 	}
 
 
-for {} 1 {} { 
-	interact timeout 60 { 
+for {} 1 {} {
+	interact timeout 60 {
 			send "\033\133\101\033\133\102"
 	} \005 { #C-e
 		if {$autoreply} {
@@ -165,9 +165,8 @@ for {} 1 {} {
 			set autoreply 1
 			send_user "autoreply"
 		}
-	
+
 	} \013 { #C-k
-		exit 
+		exit
 	}
 }
-
